@@ -12,173 +12,167 @@
  */
 
 
-(function(){
+(function($){
+	var totalStaticks = 0;
 
-	// Create some defaults, extending them with any options that were provided
-  var defaults = {
-		title : "untitled statick",
-		circleSize : 20,
-		opacity: 0.5,
-		createFunction: createItems,
-		drawFunction: drawItems,
-		restrictInstances: true,
-		timing : {
-			baseTime : 200
+	// constructor
+	var Statick = function(elem, options){
+		this.statickPaper = null;
+		this.version = '0.1';
+		this.drawing = false;
+		jQuery.extend(this, options);
+		
+		this.stopDrawing = function(){
+			this.drawing = false;
+			clearInterval(this.drawIntervalHandle);
+		};
+		
+		this.startDrawing = function(){
+			this.drawing = true;
+			_fixedDrawing.call(this);
+		};
+		
+		this.toggleDrawing = function(){
+			if(this.drawing){this.stopDrawing();}
+			else{this.startDrawing();}
 		}
-  };
+		
+		try{
+			if ( totalStaticks === 5 ){ // && this.restrictInstances
+				debug_console( "warning: too many canvases may slow or even crash your browser! set restrictInstances: true to override this limit", "warn");	
+				return;
+			}
+			debug_console( 'init\'ing statick for image: ' + elem.src);
+			totalStaticks += 1;
+			jQuery(elem).wrap("<div class='relative'>");
 
-	function createItems(){
-    // console.log("createItems");
+			if ( elem.width === 0 || elem.height === 0 ){
+				throw new Error('image has no height or width!');
+			}
+
+			this.width = elem.width;
+			this.height = elem.height;
+			this.canvas = jQuery('<div class="statickContainer">').css({ 
+				width: elem.width,
+				height: elem.height,
+				opacity: options.opacity || 1.0,
+			})[0];
+
+			jQuery(elem).after(this.canvas);
+			this.paper = Raphael(this.canvas, elem.width, elem.height);
+			calculateNumDrawObjects.call(this);
+			_createItems.call(this);
+			this.startDrawing();
+		}
+		catch(e){
+			debug_console( e.message, "error");
+		}
+	};
+
+	function _createItems(){
+    // console.log("_createItems");
     var i, j, circle;
     this.circles = [];
 
-    for( j = 0; j < this.options.numCols; j++){
+    for ( j = 0; j < this.numCols; j++){
       this.circles[j] = [];
-      for( i = 0; i < this.options.numRows; i++){
-        circle = this.paper.circle( (j*this.options.x_offset), (i*this.options.y_offset), this.options.circleSize );
-        if( this.options.stroke ){
-          circle.attr("stroke", this.options.stroke);
+      for ( i = 0; i < this.numRows; i++){
+        circle = this.paper.circle( (j*this.x_offset), (i*this.y_offset), this.circleSize );
+        if ( this.stroke ){
+          circle.attr("stroke", this.stroke);
         }
         this.circles[j][i] = circle;
       }
     }
   };
 
-	function drawItems(){  // draw function
-		// debug_console( 'drawItems', "debug");
-		
+	function _drawItems(){  // draw function
+		// debug_console( '_drawItems', "debug");
 		var i, j, red, green;
 
-    for( j = 0; j < this.options.numCols; j++){
-      for( i = 0; i < this.options.numRows; i++){
-          red = Math.floor(Math.random()*256);
-          green = 128 + Math.floor(Math.random()*128);
-          blue = 255;
-          this.circles[j][i].attr("fill", "rgb("+ red +","+green+","+blue+")");	
-      }
+    for ( j = 0; j < this.numCols; j++){
+			for ( i = 0; i < this.numRows; i++){
+				red = Math.floor(Math.random()*256);
+				green = 128 + Math.floor(Math.random()*128);
+				blue = 255;
+				this.circles[j][i].attr("fill", "rgb("+ red +","+green+","+blue+")");	
+			}
     }
 	};
 
-	var totalItems = 0;
-
-	jQuery.statick = function(elem, options){
-		this.options = $.extend({}, defaults, options || {});
-		this.target = elem;
-		this.canvas = null;
-		this._init();
-		jQuery(this.canvas).data('statick', this); // store state data on the canvas element
+	function calculateNumDrawObjects(){
+		this.numCols = this.width / this.circleSize;
+		this.numRows = this.height / this.circleSize;
+		this.x_offset = this.circleSize * 2; // circle's radius times 2, so they don't overlap
+		this.y_offset = this.circleSize * 2;
 	};
 
-	jQuery.statick.prototype.extend = jQuery.extend;
-	
-	// give each statick object some extra methods, defined outside the constructor
-	jQuery.statick.prototype.extend({
+	function getTotalStaticks(){
+		return totalStaticks;
+	};
 
-		_init : function(){
+	// draw at a fixed rate
+	function _fixedDrawing(){
+		var self = this,
+			drawFn = this.drawFunction;
 
-			try{
-				if( this.options.restrictInstances && totalItems === 5 ){
-					debug_console( "warning: too many canvases may slow or even crash your browser! set restrictInstances: true to override this limit", "warn");	
-					return;
-				}
+		drawFn.apply(self);
 
-				// debug_console( 'init\'ing statick for item# ' + totalItems);
-				debug_console( 'init\'ing statick for image: ' + this.target.src);
-				totalItems += 1;
-
-				jQuery(this.target).wrap("<div class='relative'>");
-
-				this.canvas = jQuery('<div class="statickContainer">').css({ 
-					width: this.target.width,
-					height: this.target.height,
-					opacity: this.options.opacity,
-					// 'webkit-transform' : 'rotate(45deg)'
-					})[0];
-
-					if( this.canvas.width === 0 || this.canvas.height === 0 ){
-						throw new Error('canvas has no height or width!');
-					}
-
-					jQuery(this.target).after(this.canvas);
-					this.paper = Raphael(this.canvas, this.canvas.width, this.canvas.height);
-					this.calculateNumDrawObjects();
-					createItems.apply(this);
-					this.fixedDrawing();
-				}
-				catch(e){
-					debug_console( e.message, "error");
-				}
-		},
-		
-		calculateNumDrawObjects : function(){
-			this.options.numCols = jQuery(this.canvas).width() / this.options.circleSize;
-			this.options.numRows = jQuery(this.canvas).height() / this.options.circleSize;
-			this.options.x_offset = this.options.circleSize * 2; // circle's radius times 2, so they don't overlap
-			this.options.y_offset = this.options.circleSize * 2;
-		},
-		
-		getTotalStaticks : function(){
-			return jQuery('.statickContainer').length;
-			// return totalItems;
-		},
-		
-		// draw at a fixed rate
-		fixedDrawing : function(){
-			var self = this,
-					drawFn = this.options.drawFunction;
-					
-			// this.stopDrawingInterval();
-			
-			drawFn.apply(self);
-
-			self.drawIntervalHandle = setInterval(function(){
+		self.drawIntervalHandle = setInterval(function(){
 				drawFn.apply(self);
-				},
-				this.options.timing.baseTime
-			);
-		},
+			},
+			this.timing.baseTime
+		);
+	};
+
+	function destroy(fade){
+		debug_console( 'destroying statick action...', "debug");
 		
-		stopDrawing: function(){
-			clearInterval(this.drawIntervalHandle);
-		},
+		// todo remember to remove .data of the instance attached to the DOM elem...
+		///
+		///
 		
-		startDrawing: function(){
-			this.fixedDrawing();
-		},
-		
-		destroy: function(fade){
-			debug_console( 'destroying statick action...', "debug");
-			clearInterval(this.drawIntervalHandle); // stop the draw interval	
-			var image = jQuery(this.canvas).siblings('img'); // preserve the original image
-			// remove the added canvas div and positioning div
-			if( fade ){
-				jQuery(this.canvas).fadeOut( 700, function(){
-					jQuery(this).remove(); 
-					image.unwrap();
-				});
-			}
-			else{
-				jQuery(this.canvas).remove();
+		clearInterval(this.drawIntervalHandle); // stop the draw interval	
+		var image = jQuery(this.canvas).siblings('img'); // preserve the original image
+		// remove the added canvas div and positioning div
+		if ( fade ){
+			jQuery(this.canvas).fadeOut( 700, function(){
+				jQuery(this).remove(); 
 				image.unwrap();
+			});
+		}
+		else{
+			jQuery(this.canvas).remove();
+			image.unwrap();
+		}
+	};
+
+
+   $.fn.statick = function(options) {
+			// Create some defaults, extending them with any options that were provided
+			var defaults = {
+				title : "untitled statick",
+				circleSize : 20,
+				opacity: 0.5,
+				createFunction: _createItems,
+				drawFunction: _drawItems,
+				restrictInstances: true,
+				timing : {
+					baseTime : 200
+				}
+			};
+
+			if (options) {
+				$.extend(defaults, options);
 			}
-		}
-	});
-			
-	// setup inspired by jcarousel plugin
-   jQuery.fn.statick = function(option) {
-		if (typeof option == 'string') {
-			jQuery(this).each( function(){
-				var instance = $(this).data('statick'), 
-				args = Array.prototype.slice.call(arguments, 1);
-				return instance[option].apply(instance, args);
+
+			this.each( function(){
+				// attach the Statick object instance to the DOM element
+				jQuery(this).data('statick', new Statick(this, defaults ));
 			});
-		} 
-		else {
-			return this.each(function() {
-				$(this).data('statick', new jQuery.statick(this, option));
-			});
-		}
-   };
-	
-})();
+
+			return this;
+		};
+
+})(jQuery);
 

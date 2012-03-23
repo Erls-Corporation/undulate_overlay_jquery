@@ -1,12 +1,13 @@
-
-//  BEGIN
 jQuery( function(){
 
+	jQuery('.statick').statick();
+	
+	return;
 	
 	function drawItems2(){  // draw function
 		var grayVal = randomRange(30,240);
-    for( j = 0; j < this.options.numCols; j++){
-      for( i = 0; i < this.options.numRows; i++){
+    for ( j = 0; j < this.options.numCols; j++){
+      for ( i = 0; i < this.options.numRows; i++){
           this.circles[j][i].attr("fill", "rgb("+grayVal+","+grayVal+","+grayVal+")");	
       }
     }
@@ -23,6 +24,7 @@ jQuery( function(){
 	jQuery('#statick2').statick(
 		{opacity: 0.3}
 	);
+
 
 	// if( false ){
 	// 	secondsSineBasedDrawing();
