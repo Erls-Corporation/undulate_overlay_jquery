@@ -31,12 +31,12 @@ var myPresets = [];
       var i, j, circle, circleSize = 20;
       this.circles = [];
 
-      for( j = 0; j < this.attributes.numCols; j++){
+      for( j = 0; j < this.numCols; j++){
         this.circles[j] = [];
-        for( i = 0; i < this.attributes.numRows; i++){
-          circle = this.paper.circle( (j*this.attributes.x_offset), (i*this.attributes.y_offset), circleSize );
-          if( this.attributes.stroke ){
-            circle.attr("stroke", this.attributes.stroke);
+        for( i = 0; i < this.numRows; i++){
+          circle = this.paper.circle( (j*this.x_offset), (i*this.y_offset), circleSize );
+          if( this.stroke ){
+            circle.attr("stroke", this.stroke);
           }
           this.circles[j][i] = circle;
         }
@@ -45,40 +45,40 @@ var myPresets = [];
     drawItems : function(){  // draw function
       console.log("drawCircles");
       var i, j, red, green,
-      palette = this.attributes.palettes;
+      palette = this.palettes;
 
-      if( this.attributes.specialFX.alternateRows ){
-        this.attributes.specialFX.alternateRowsVal = (this.attributes.specialFX.alternateRowsVal === 1 ) ? 0 : 1;
+      if( this.specialFX.alternateRows ){
+        this.specialFX.alternateRowsVal = (this.specialFX.alternateRowsVal === 1 ) ? 0 : 1;
       }
-      if( this.attributes.specialFX.alternateColumns ){
-        this.attributes.specialFX.alternateColumnsVal = (this.attributes.specialFX.alternateColumnsVal === 1 ) ? 0 : 1;
+      if( this.specialFX.alternateColumns ){
+        this.specialFX.alternateColumnsVal = (this.specialFX.alternateColumnsVal === 1 ) ? 0 : 1;
       }
 
-      for( j = 0; j < this.attributes.numCols; j++){
-        for( i = 0; i < this.attributes.numRows; i++){
+      for( j = 0; j < this.numCols; j++){
+        for( i = 0; i < this.numRows; i++){
 
           // special fx!
           // ****
           // row/column filtering
-          if( (this.attributes.specialFX.skipEvenColumns && j%2 === 0) 
-          || (this.attributes.specialFX.skipOddColumns && j%2 === 1)){
+          if( (this.specialFX.skipEvenColumns && j%2 === 0) 
+          || (this.specialFX.skipOddColumns && j%2 === 1)){
             continue;
           }
-          else if((this.attributes.specialFX.skipEvenRows && i%2 === 0) 
-          || (this.attributes.specialFX.skipOddRows && i%2 === 1)){
+          else if((this.specialFX.skipEvenRows && i%2 === 0) 
+          || (this.specialFX.skipOddRows && i%2 === 1)){
             continue;
           }
           // alternation
-          if( this.attributes.specialFX.alternateRows ){
-            if(i%2 === this.attributes.specialFX.alternateRowsVal){
+          if( this.specialFX.alternateRows ){
+            if(i%2 === this.specialFX.alternateRowsVal){
               this.circles[j][i].attr('opacity', 0);
             }
             else{
               this.circles[j][i].attr('opacity', 1);
             }
           }
-          if( this.attributes.specialFX.alternateColumns ){
-            if(j%2 === this.attributes.specialFX.alternateColumnsVal){
+          if( this.specialFX.alternateColumns ){
+            if(j%2 === this.specialFX.alternateColumnsVal){
               this.circles[j][i].attr('opacity', 0);
             }
             else{
@@ -87,9 +87,9 @@ var myPresets = [];
           }        
 
           // circle.drag(move, start, up);
-          switch( this.attributes.colorMethod ){
+          switch( this.colorMethod ){
             case "palette":
-            this.circles[j][i].attr("fill", "#" + palette[this.attributes.currentPaletteIndex]['colors'][randomRange(0, palette[0]['colors'].length -1)] );	
+            this.circles[j][i].attr("fill", "#" + palette[this.currentPaletteIndex]['colors'][randomRange(0, palette[0]['colors'].length -1)] );	
             break;
             default:
             red = Math.floor(Math.random()*256);
@@ -113,18 +113,18 @@ var myPresets = [];
       this.squares = [];
 
       // TEMP
-      this.attributes.x_offset = this.pixelSize;
-      this.attributes.y_offset = this.pixelSize;
+      this.x_offset = this.pixelSize;
+      this.y_offset = this.pixelSize;
       squareWidth = this.pixelSize;
       squareHeight = this.pixelSize;
-      this.attributes.numCols = this.attributes.canvasWidth / squareWidth;
-      this.attributes.numRows = this.attributes.canvasHeight / squareHeight;		
+      this.numCols = this.canvasWidth / squareWidth;
+      this.numRows = this.canvasHeight / squareHeight;		
 
-      for( j = 0; j < this.attributes.numCols; j++){
+      for( j = 0; j < this.numCols; j++){
         this.squares[j] = [];
-        for( i = 0; i < this.attributes.numRows; i++){
+        for( i = 0; i < this.numRows; i++){
 
-          square = this.paper.rect( (j*this.attributes.x_offset), (i*this.attributes.y_offset), squareWidth, squareHeight );
+          square = this.paper.rect( (j*this.x_offset), (i*this.y_offset), squareWidth, squareHeight );
           // square.attr("stroke", "rgba(255,255,255,0.5)");
           this.squares[j][i] = square;
 
@@ -136,8 +136,8 @@ var myPresets = [];
 
       var i, j, random, color;
 
-      for( j = 0; j < this.attributes.numCols; j++){
-        for( i = 0; i < this.attributes.numRows; i++){
+      for( j = 0; j < this.numCols; j++){
+        for( i = 0; i < this.numRows; i++){
           color = (randomRange(0,1) === 1) ? "rgb(0,0,0)" : "rgb(255,255,255)";
           this.squares[j][i].attr({"fill" : color, 'stroke-width' : 0});	
         }

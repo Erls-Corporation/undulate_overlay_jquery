@@ -7,15 +7,20 @@ var UNDULATE = {
 	forcePatternAJAXGet : false, 
 	palettes : null, // palettes from colourlovers.com
 	currentPaletteIndex: 0,
+	sliderTimingMin: 50,
+	sliderTimingMax: 600,
+	
 	init : function(){
 		this.loadImages();
 		this.statickImage = jQuery('.statick').statick({ 'opacity' : 0.5, timing : { 'baseTime' : 50 } });
+		this.statickImageInstance = this.statickImage.data('statick');
 		this.timing = this.statickImage.data('statick').timing;
 		this.opacity = this.statickImage.data('statick').opacity;
 		this.canvas = this.statickImage.data('statick').canvas;
 		this.loadLocalStorage();
 		this.setupControls();
 	},
+	
 	loadLocalStorage: function(){
 		
 		this.currentImageIndex = localStorage.getItem('undulate_overlay_currentImageIndex');
@@ -38,85 +43,84 @@ var UNDULATE = {
 		}
 		
 	},
+	
 	loadImages: function(){
-		var image, 
-			that = this; 
+		var image;
 		
 		this.images = [];
 		this.currentImageIndex = 0;
 
     jQuery.get( 'images/image_list.txt', function(data){
     
-      that.images = jQuery.trim(data).split(';');
+      UNDULATE.images = jQuery.trim(data).split(';');
     
-      for( var item in that.images ){
+      for( var item in UNDULATE.images ){
         image = new Image();
-        that.images[item] = 'images/' + that.images[item]; // path to images
-        image.src =  that.images[item];
+        UNDULATE.images[item] = 'images/' + UNDULATE.images[item]; // path to images
+        image.src =  UNDULATE.images[item];
       }
     
-      that.updateImage(false);
+      UNDULATE.updateImage(false);
     });
 		
 	},
+	
 	setupControls : function(){
-		var that = this;
 		
 		jQuery('.paletteControl').click(function(e){
 			e.preventDefault();
 			if( jQuery(this).attr('id') === 'nextPalette' ){
-				that.nextPalette();
+				UNDULATE.nextPalette();
 			}
 			else{
-				that.previousPalette();	
+				UNDULATE.previousPalette();	
 			}
 		});
 		
 		jQuery('.imageControl').click(function(e){
 			e.preventDefault();
 			if( jQuery(this).attr('id') === 'nextImage' ){
-				that.nextImage();
+				UNDULATE.nextImage();
 			}
 			else{
-				that.previousImage();	
+				UNDULATE.previousImage();	
 			}
-		});		
+		});	
+		
+		var sliderChange = function(){
+			var $slider = jQuery(this),
+				opacityValue = $slider.slider('value');
+			console.log(opacityValue);
+			jQuery('#opacityValue').text(opacityValue);
+			jQuery(UNDULATE.canvas).css('opacity', opacityValue/100.0);
+		};
 		
 		jQuery("#opacitySlider").slider({
-			slide: function(){
-				var value = jQuery(this).slider('value');
-				console.log(value);
-				jQuery('#opacityValue').text(value);
-				jQuery(that.canvas).css('opacity', value/100.0);
-			},
-			change: function(){
-				// TODO: be nice to DRY this out somehow
-				var value = jQuery(this).slider('value');
-				console.log(value);
-				jQuery('#opacityValue').text(value);
-				jQuery(that.canvas).css('opacity', value/100.0);
-			},
+			slide: sliderChange,
+			change: sliderChange,
 			max: 100,
-			value: that.opacity * 100});
+			value: UNDULATE.opacity * 100}
+		);
 
 		jQuery("#baseTimeSlider").slider({
 			change: function(){
 				var value = jQuery(this).slider('value');
 				console.log(value);
 				jQuery('#baseTimeValue').text(value + " ms");
-				that.timing.baseTime = value;
-				that.fixedDrawing();
+				UNDULATE.timing.baseTime = value;
+				UNDULATE.statickImageInstance.stopDrawing();
+				UNDULATE.statickImageInstance.startDrawing();
 			},
-			min: 50,
-			max: that.timing.maxTime,
-			value: that.timing.baseTime});		
+			min: UNDULATE.sliderTimingMin,
+			max: UNDULATE.sliderTimingMax,
+			value: UNDULATE.statickImageInstance.timing.baseTime});		
 			
 		jQuery(window).unload(function() {
-			localStorage.setItem('undulate_overlay_current_colors', JSON.stringify(that.palettes[that.currentPaletteIndex].colors) );
-			localStorage.setItem('undulate_overlay_palettes', JSON.stringify(that.palettes) );
-			localStorage.setItem('undulate_overlay_current_opacity', jQuery(that.canvas).css('opacity'));
-			localStorage.setItem('undulate_overlay_current_baseTime', that.timing.baseTime);
-			localStorage.setItem('undulate_overlay_currentImageIndex', that.currentImageIndex);
+			localStorage.setItem('undulate_overlay_current_colors', JSON.stringify(UNDULATE.palettes[UNDULATE.currentPaletteIndex].colors) );
+			localStorage.setItem('undulate_overlay_palettes', JSON.stringify(UNDULATE.palettes) );
+			localStorage.setItem('undulate_overlay_current_opacity', jQuery(UNDULATE.canvas).css('opacity'));
+			localStorage.setItem('undulate_overlay_current_baseTime', UNDULATE.timing.baseTime);
+			localStorage.setItem('undulate_overlay_currentImageIndex', UNDULATE.currentImageIndex);
 		});
 		
 		// setup preset selection
@@ -129,12 +133,13 @@ var UNDULATE = {
 		}
 		
 		$dropdown.change(function(evt){
-			console.log('switching to preset ' + that.presets[parseInt($dropdown.val(), 10)].presetName);
-			that.stopDrawingInterval();
-			that.paper.clear();
-			jQuery.extend( true, UNDULATE, that.presets[parseInt($dropdown.val(), 10)] );
-			that.createItems();
-			that.fixedDrawing();
+			console.log('switching to preset ' + UNDULATE.presets[parseInt($dropdown.val(), 10)].presetName);
+			UNDULATE.stopDrawingInterval();
+			UNDULATE.statickImageInstance.paper.clear();
+			jQuery.extend( true, UNDULATE, UNDULATE.presets[parseInt($dropdown.val(), 10)] );
+			// todo need updating with new refactoring
+			// UNDULATE.statickImageInstance.createItems();
+			// UNDULATE.fixedDrawing();
 		});
 			
 	},
@@ -155,72 +160,77 @@ var UNDULATE = {
   // getPalette: function(){
   //  return this.currentPaletteIndex;
   // },
+
 	nextPalette: function(){
 		if(++this.currentPaletteIndex >= this.palettes.length ){
 			this.currentPaletteIndex = 0;
 		}
 	},
+	
 	previousPalette: function(){
 		if(--this.currentPaletteIndex < 0){
 			this.currentPaletteIndex = this.palettes.length -1;
 		}
 	},
+	
 	nextImage: function(){
 		if(++this.currentImageIndex >= this.images.length ){
 			this.currentImageIndex = 0;
 		}
 		this.updateImage();
 	},
+	
 	previousImage: function(){
 		if(--this.currentImageIndex < 0 ){
 			this.currentImageIndex = this.images.length - 1;
 		}
 		this.updateImage();
 	},
+	
 	updateImage: function(fade){
-		
 		fade = (fade !== undefined) ? fade : true;
-		var that = this;
 		
 		if( fade ){
 			jQuery('#overlayImage').fadeTo( 120, 0, 'easeOutSine', function(){
-				jQuery(this).attr('src', that.images[that.currentImageIndex]);
+				jQuery(this).attr('src', UNDULATE.images[UNDULATE.currentImageIndex]);
 				jQuery(this).fadeTo(400, 1, 'easeOutSine');
 			});
 		}
 		else{
-			jQuery('#overlayImage').attr('src', that.images[that.currentImageIndex]);
+			jQuery('#overlayImage').attr('src', UNDULATE.images[UNDULATE.currentImageIndex]);
 		}
 	
 	},
 	createItems : null,
 	drawItems : null,
+	
 	// draw at a fixed rate
-	fixedDrawing : function(){
-		var that = this;
-
-		this.stopDrawingInterval();
-		that.drawItems();
-		
-		this.drawIntervalHandle = setInterval(function(){
-			that.drawItems();
-			},
-			this.timing.baseTime);
-
-	},
+	// fixedDrawing : function(){
+	// 	var that = this;
+	// 
+	// 	this.stopDrawingInterval();
+	// 	that.drawItems();
+	// 	
+	// 	this.drawIntervalHandle = setInterval(function(){
+	// 		that.drawItems();
+	// 		},
+	// 		this.timing.baseTime);
+	// 
+	// },
+	
 	stopDrawingInterval : function(){
 		clearInterval(this.drawIntervalHandle);
 	},
+	
 	loadPalettes : function(options){
 		
-		var that = this, 
-    		options = options || {},
+		var options = options || {},
     		numPalettes = options.numPalettes || 5;
 		
 		// only make an ajax call to colourlovers if it's been over a day
-		if( that.timeSinceLastPatternGet === null // if we've never made an ajax call for patterns
-			|| ((new Date().getTime() - that.timeSinceLastPatternGet) / (1000 * 60 * 60 * 24)) > 1  // if the last time we made an ajax call was over a day ago
-			|| that.forcePatternAJAXGet ){ // or if we want to force an ajax retrieval
+		if( UNDULATE.timeSinceLastPatternGet === null // if we've never made an ajax call for patterns
+			|| ((new Date().getTime() - UNDULATE.timeSinceLastPatternGet) / (1000 * 60 * 60 * 24)) > 1  // if the last time we made an ajax call was over a day ago
+			|| UNDULATE.forcePatternAJAXGet ){ // or if we want to force an ajax retrieval
 
 			console.log( 'using ajax call to colour lovers for pattern retrieval' );
 
@@ -230,7 +240,7 @@ var UNDULATE = {
 				data: {numResults: numPalettes},
 				success: function(data){
 					console.log('got ' + data.length + ' palettes!');
-					that.palettes = data;
+					UNDULATE.palettes = data;
 					localStorage.setItem('undulate_overlay_time_patterns_retrieved_at', new Date().getTime() );
 				}
 			});
@@ -238,11 +248,9 @@ var UNDULATE = {
 		}
 		else{
 			console.log( 'using local storage for pattern retrieval' );
-			that.palettes = JSON.parse(localStorage.getItem('undulate_overlay_palettes'));
+			UNDULATE.palettes = JSON.parse(localStorage.getItem('undulate_overlay_palettes'));
 		}
-		
 	}
-	
 };
 
 

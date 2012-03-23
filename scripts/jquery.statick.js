@@ -13,16 +13,18 @@
 
 
 (function($){
-	var totalStaticks = 0;
+	var totalStaticks = 0,
+		version = '0.1';
 
 	// constructor
 	var Statick = function(elem, options){
 		try{
 			this.statickPaper = null;
-			this.version = '0.1';
+			this.version = version;
 			this.drawing = false;
 			jQuery.extend(this, options);
 		
+			///// instance methods -- these can be rolled into the above .extend call if i want
 			this.stopDrawing = function(){
 				this.drawing = false;
 				clearInterval(this.drawIntervalHandle);
@@ -37,6 +39,11 @@
 				if(this.drawing){this.stopDrawing();}
 				else{this.startDrawing();}
 			}
+			
+			this.getTotalStaticks = function(){
+				return totalStaticks;
+			};
+			////////
 		
 			if ( totalStaticks === 5 ){ // && this.restrictInstances
 				debug_console( "warning: too many canvases may slow or even crash your browser! set restrictInstances: true to override this limit", "warn");	
@@ -61,7 +68,7 @@
 
 			jQuery(elem).after(this.canvas);
 			this.paper = Raphael(this.canvas, elem.width, elem.height);
-			calculateNumDrawObjects.call(this);
+			_calculateNumDrawObjects.call(this);
 			_createItems.call(this);
 			this.startDrawing();
 		}
@@ -101,15 +108,11 @@
     }
 	};
 
-	function calculateNumDrawObjects(){
+	function _calculateNumDrawObjects(){
 		this.numCols = this.width / this.circleSize;
 		this.numRows = this.height / this.circleSize;
 		this.x_offset = this.circleSize * 2; // circle's radius times 2, so they don't overlap
 		this.y_offset = this.circleSize * 2;
-	};
-
-	function getTotalStaticks(){
-		return totalStaticks;
 	};
 
 	// draw at a fixed rate
@@ -126,9 +129,8 @@
 		);
 	};
 
-	function destroy(fade){
+	function _destroy(fade){
 		debug_console( 'destroying statick action...', "debug");
-		
 		// todo remember to remove .data of the instance attached to the DOM elem...
 		///
 		///
@@ -148,6 +150,7 @@
 		}
 	};
 
+	// the only public method for the Statick plugin
 	$.fn.statick = function(options) {
 		try{
 			// Create some defaults, extending them with any options that were provided
