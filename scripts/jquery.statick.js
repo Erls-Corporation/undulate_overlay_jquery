@@ -19,10 +19,9 @@
 	// constructor
 	var Statick = function(elem, options){
 		try{
-			this.statickPaper = null;
-			this.version = version;
-			this.drawing = false;
-			jQuery.extend(this, options);
+			this.version = version; // version of the plugin
+			this.drawing = false; // is the canvas currently animating?
+			jQuery.extend(this, options); // bestow the object with defaults + any other custom fields/values
 		
 			///// instance methods -- these can be rolled into the above .extend call if i want
 			this.stopDrawing = function(){
@@ -67,9 +66,11 @@
 			})[0];
 
 			jQuery(elem).after(this.canvas);
+			// create the Raphael object
 			this.paper = Raphael(this.canvas, elem.width, elem.height);
-			_calculateNumDrawObjects.call(this);
-			_createItems.call(this);
+			// create the drawing items
+			options.customCreateItems ? options.customCreateItems.call(this) : _createItems.call(this);	
+			
 			this.startDrawing();
 		}
 		catch(e){
@@ -77,15 +78,24 @@
 		}
 	};
 
+	// default createItems function
 	function _createItems(){
     // console.log("_createItems");
+		var circleSize = 20;
+		
+		// figure out the number of objects to draw on the canvas to fit the image based upon their dimensions and the image's dimensions
+		this.numCols = this.width / circleSize;
+		this.numRows = this.height / circleSize;
+		this.x_offset = circleSize * 2; // circle's radius times 2, so they don't overlap
+		this.y_offset = circleSize * 2;
+		
     var i, j, circle;
     this.circles = [];
 
     for ( j = 0; j < this.numCols; j++){
       this.circles[j] = [];
       for ( i = 0; i < this.numRows; i++){
-        circle = this.paper.circle( (j*this.x_offset), (i*this.y_offset), this.circleSize );
+        circle = this.paper.circle( (j*this.x_offset), (i*this.y_offset), circleSize );
         if ( this.stroke ){
           circle.attr("stroke", this.stroke);
         }
@@ -94,7 +104,8 @@
     }
   };
 
-	function _drawItems(){  // draw function
+	// draw or modify the items created by Raphael on the canvas
+	function _drawItems(){
 		// debug_console( '_drawItems', "debug");
 		var i, j, red, green;
 
@@ -108,24 +119,18 @@
     }
 	};
 
-	function _calculateNumDrawObjects(){
-		this.numCols = this.width / this.circleSize;
-		this.numRows = this.height / this.circleSize;
-		this.x_offset = this.circleSize * 2; // circle's radius times 2, so they don't overlap
-		this.y_offset = this.circleSize * 2;
-	};
 
 	// draw at a fixed rate
 	function _fixedDrawing(){
-		var self = this,
-			drawFn = this.drawFunction;
+		var $statickObject = this,
+			drawFn = $statickObject.drawFunction;
 
-		drawFn.apply(self);
+		drawFn.call($statickObject);
 
 		self.drawIntervalHandle = setInterval(function(){
-				drawFn.apply(self);
+				drawFn.call($statickObject);
 			},
-			this.timing.baseTime
+			$statickObject.timing.baseTime
 		);
 	};
 
@@ -156,9 +161,7 @@
 			// Create some defaults, extending them with any options that were provided
 			var defaults = {
 				title : "untitled statick",
-				circleSize : 20,
 				opacity: 0.5,
-				createFunction: _createItems,
 				drawFunction: _drawItems,
 				restrictInstances: true,
 				timing : {
