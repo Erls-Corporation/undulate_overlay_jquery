@@ -17,32 +17,33 @@
 
 	// constructor
 	var Statick = function(elem, options){
-		this.statickPaper = null;
-		this.version = '0.1';
-		this.drawing = false;
-		jQuery.extend(this, options);
-		
-		this.stopDrawing = function(){
-			this.drawing = false;
-			clearInterval(this.drawIntervalHandle);
-		};
-		
-		this.startDrawing = function(){
-			this.drawing = true;
-			_fixedDrawing.call(this);
-		};
-		
-		this.toggleDrawing = function(){
-			if(this.drawing){this.stopDrawing();}
-			else{this.startDrawing();}
-		}
-		
 		try{
+			this.statickPaper = null;
+			this.version = '0.1';
+			this.drawing = false;
+			jQuery.extend(this, options);
+		
+			this.stopDrawing = function(){
+				this.drawing = false;
+				clearInterval(this.drawIntervalHandle);
+			};
+		
+			this.startDrawing = function(){
+				this.drawing = true;
+				_fixedDrawing.call(this);
+			};
+		
+			this.toggleDrawing = function(){
+				if(this.drawing){this.stopDrawing();}
+				else{this.startDrawing();}
+			}
+		
 			if ( totalStaticks === 5 ){ // && this.restrictInstances
 				debug_console( "warning: too many canvases may slow or even crash your browser! set restrictInstances: true to override this limit", "warn");	
 				return;
 			}
-			debug_console( 'init\'ing statick for image: ' + elem.src);
+			
+			debug_console( 'init\'ing statick for image: ' + (elem.src || elem.alt));
 			totalStaticks += 1;
 			jQuery(elem).wrap("<div class='relative'>");
 
@@ -147,8 +148,8 @@
 		}
 	};
 
-
-   $.fn.statick = function(options) {
+	$.fn.statick = function(options) {
+		try{
 			// Create some defaults, extending them with any options that were provided
 			var defaults = {
 				title : "untitled statick",
@@ -162,6 +163,10 @@
 				}
 			};
 
+			if( typeof Raphael === "undefined" ){ 
+				throw new Error('The Raphael vector library must be included for Statick to work!');
+			}
+
 			if (options) {
 				$.extend(defaults, options);
 			}
@@ -172,7 +177,11 @@
 			});
 
 			return this;
-		};
+		}
+		catch(e){
+			debug_console( e.message, "error");
+		}
+	};
 
 })(jQuery);
 

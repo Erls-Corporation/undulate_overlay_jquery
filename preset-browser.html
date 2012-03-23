@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<title>Undulating Overlay Preset Browser</title>
+  <link rel='stylesheet' type='text/css' href='http://telecommutetojuryduty.com/styles/style_reset.css' />
+	<link rel='stylesheet' type='text/css' href='styles/styles.css' />
+	<link rel='stylesheet' type='text/css' href='http://telecommutetojuryduty.com/styles/external/ui-darkness/jquery-ui-1.8.16.custom.css' />
+</head>
+<body>
+
+	<div id="wrapper">
+
+		<div id="llamas" class='container'>
+			<img width='1100' height='399' alt='overlayImage' class='statick' id="overlayImage"/>
+		</div>
+		
+		<div id='todo' class='bullet'>
+			<ul>
+				<li>add sine-modulated change to opacity level over time</li>
+				<li>"static" jquery plugin (see gmail email to self)</li>
+				<li>export preset values (will export as json to a text area so that the user can copy/paste)</li>
+			</ul>
+			<div class='bullet' id='debug'>debug:<span></span></div>		
+		</div>
+		
+		<div id="info">
+			<ul>
+				<li class='bullet control paletteControl' id="previousPalette"><a href='#'>Previous Palette</a></li>		
+				<li class='bullet control paletteControl' id="nextPalette"><a href='#'>Next Palette</a></li>
+				<li class='bullet control imageControl' id="previousImage"><a href='#'>Previous Image</a></li>		
+				<li class='bullet control imageControl' id="nextImage"><a href='#'>Next Image</a></li>
+				<li class='sliderArea'>
+					<h4>opacity</h4>
+					<span id="opacityValue"></span>
+					<div class='slider' id="opacitySlider"></div>
+				</li>
+				<li class='sliderArea'>
+					<h4>baseTime</h4>
+					<span id="baseTimeValue"></span>
+					<div class='slider' id="baseTimeSlider"></div>
+				</li>
+				<li class='bullet'>
+					<select id="presetSelect"></select>
+				</li>
+			</ul>
+		</div>
+	</div>
+
+	<script src='/scripts/external/raphael-min.js'></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.13/jquery-ui.min.js"></script>
+	<script src='/scripts/tele_utils.js'></script>
+	<script src='scripts/jquery.statick.js'></script>
+	<script src='scripts/undulate_overlay_presets.js'></script>
+	<script src='scripts/undulate_overlay_preset_browser.js'></script>
+	
+</body>
+</html>

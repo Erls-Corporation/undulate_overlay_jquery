@@ -153,7 +153,6 @@ var myPresets = [];
     pixelSize : 32
   }
 
-
   var sparseCirclesExtension = jQuery.extend(true, {}, defaultPreset, {
     presetName : "circles no overlap",
     attributes:{
@@ -164,7 +163,6 @@ var myPresets = [];
       stroke : null
     }
   });
-
 
   var sparseCirclesSkipEvenColumnsExtension = jQuery.extend(true, {}, sparseCirclesExtension, {
     presetName : "circles skip evens no overlap",

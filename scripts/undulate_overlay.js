@@ -1,13 +1,11 @@
 jQuery( function(){
 
-	jQuery('.statick').statick();
-	
-	return;
+	//jQuery('.statick').statick(); // defaults
 	
 	function drawItems2(){  // draw function
 		var grayVal = randomRange(30,240);
-    for ( j = 0; j < this.options.numCols; j++){
-      for ( i = 0; i < this.options.numRows; i++){
+    for ( j = 0; j < this.numCols; j++){
+      for ( i = 0; i < this.numRows; i++){
           this.circles[j][i].attr("fill", "rgb("+grayVal+","+grayVal+","+grayVal+")");	
       }
     }
@@ -24,6 +22,11 @@ jQuery( function(){
 	jQuery('#statick2').statick(
 		{opacity: 0.3}
 	);
+	
+	jQuery('#statick3').statick(
+		{opacity: 0.5}
+	);
+	
 
 
 	// if( false ){
@@ -93,24 +96,9 @@ function randomRange(min,max){
 	return Math.round(((max-min) * Math.random()) + min);
 }
 
-var start = function () {
-							// storing original coordinates
-							this.ox = this.attr("cx");
-							this.oy = this.attr("cy");
-							//this.attr({opacity: 1});
-						},
-		move = function (dx, dy) {
-			// move will be called with dx and dy
-			this.attr({cx: this.ox + dx, cy: this.oy + dy});
-		},
-		up = function () {
-			// restoring state
-			//this.attr({opacity: .5});
-		};		
-		
-		
-		
-		
-		
+
+
+
+
 	
 
