@@ -127,7 +127,7 @@
 
 		drawFn.call($statickObject);
 
-		self.drawIntervalHandle = setInterval(function(){
+		$statickObject.drawIntervalHandle = setInterval(function(){
 				drawFn.call($statickObject);
 			},
 			$statickObject.timing.baseTime
